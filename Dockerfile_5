@@ -1,0 +1,4 @@
+FROM ubuntu
+MAINTAINER omenia@omenia.fi
+RUN apt-get update && apt-get install -y iputils-ping traceroute net-tools
+ENTRYPOINT ["/bin/bash"]

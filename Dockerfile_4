@@ -1,0 +1,3 @@
+FROM ubuntu
+MAINTAINER omenia@omenia.fi
+ENTRYPOINT ["echo"]

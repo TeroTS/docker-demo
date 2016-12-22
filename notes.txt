@@ -1,0 +1,37 @@
+Docker overview:
+- Use page: https://docs.docker.com/engine/understanding-docker/
+
+Dockerfile:
+- Plain text
+- simple format
+- instructions to build image
+
+CMD:
+- run-time
+- run commands in containers at lauch time
+- equivalent of: docker run <command>
+- one per dockerfile
+
+RUN:
+- build-time
+- adds a layer to image
+- used to install something
+
+ENTRYPOINT:
+- run parameters do not override the command, they become parameters for the command
+- container acts as a binary
+
+ENV:
+- ENV path=/bin/bash
+
+COPY:
+- copy
+
+WORKDIR:
+- sets the container work directory
+
+docker0 if:
+- virtual ethernet switch
+
+Docker compose explanation from docker java course !!!!
+
