@@ -11,6 +11,8 @@ CMD:
 - run commands in containers at lauch time
 - equivalent of: docker run <command>
 - one per dockerfile
+- overriden by docker run <command>
+- 
 
 RUN:
 - build-time
@@ -18,11 +20,13 @@ RUN:
 - used to install something
 
 ENTRYPOINT:
+- run-time
 - run parameters do not override the command, they become parameters for the command
 - container acts as a binary
 
 ENV:
 - ENV path=/bin/bash
+- adds layer
 
 COPY:
 - copy
@@ -32,6 +36,3 @@ WORKDIR:
 
 docker0 if:
 - virtual ethernet switch
-
-Docker compose explanation from docker java course !!!!
-

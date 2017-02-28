@@ -1,0 +1,22 @@
+Container vs. VM:
+-----------------
+- Image size (linux): VM: hundreds of megs, Docker (5 Megs)
+- Container: Ligthweight VM
+
+Containers:
+-----------
+- build once run everywhere
+- easier to avoid dev, qa and prod env inconsistensies
+- Linux containers in Linux and windows containers in windows
+
+Docker overview:
+----------------
+- Image vs container == class vs object
+- Flow: 
+    * With custom dockerfile: 1. Dockerfile + docker build -> image
+                              2. Image + docker run -> container
+    * With image registry: 1. Docker run <image> -> container
+- Isolated application platform:
+    * root file system
+    * Process tree
+    * Network stack: IP adress, port range, routing table, etc..

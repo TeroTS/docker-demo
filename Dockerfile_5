@@ -1,4 +1,6 @@
-FROM ubuntu
+FROM ubuntu:16.04
 MAINTAINER omenia@omenia.fi
-RUN apt-get update && apt-get install -y iputils-ping traceroute net-tools
-ENTRYPOINT ["/bin/bash"]
+ENV VERSION 1.0
+WORKDIR /tmp
+COPY hello.txt .
+CMD ["/bin/bash"]

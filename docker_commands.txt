@@ -2,113 +2,178 @@
 whoami
 more /etc/group | grep docker
 
-#### show files on localhost ###
-docker run -it ubuntu /bin/bash
-echo 'Hello !' > tmp/hello.txt
+### helloworld: Selosta kuvan kanssa läpi mitä tapahtuu ****
+docker run hello-world
 docker images
 docker ps -a
+#
+docker pull ubuntu:16.04
+docker images
+docker history ubuntu:16.04 (käy läpi layerit + docker hub dockerfile:n kanssa + image layer kuva)
+docker run ubuntu:16.04 echo 'Hello !' (selitä että ajaa komennon ja poistuu + yliajaa dockerfile komennon)
+# docker info (docker root dir, etc...)
+
+#### show files on localhost ###
+cat /etc/*-release   (HOST linux versio)
+docker run --name 1st-container -it ubuntu:16.04 /bin/bash (-it = interactive process -> interactive bash shell in the container in this case)
+cat /etc/*-release (Container linux versio)
+echo 'Hello !' > tmp/hello.txt
+exit
+# docker images
+# docker ps -a
+docker info (docker root dir, etc...)
 sudo su
-ls -lrt /var/lib/docker/aufs/diff (image layers)
+ls -lrt /var/lib/docker/aufs/diff/<layer>/tmp/hello.txt (image layers)
 exit
 
-### edit container and create a new image ###
-docker run -it ubuntu /bin/bash
-apt-get update
-apt-get install iputils-ping
-exit
-docker commit <container id> omenia/ubuntu-with-ping
-docker run -d omenia/ubuntu-with-ping ping 8.8.8.8
-docker logs -f <container id>
+### First dockerfile ###
+# luodaan yhdessä Dockerfile_1
+docker build -t with-ping -f Dockerfile_1 .   (näytä cache)
+docker run --name cont-with-ping with-ping
+CRTL + C
+docker ps -a (see the container name)
+docker run -d --name cont-with-ping-back with-ping
+docker stop cont-with-ping-back
 
 ### start, stop, remove ###
 docker ps -a
-docker start <container id>
-docker logs -f <container id>
-docker stop <container id>
+docker start cont-with-ping-back
+docker ps
+docker logs -f cont-with-ping-back
+CTRL + C
+docker stop cont-with-ping-back
+docker ps
 docker ps -a
-docker info
-ls /var/lib/docker/containers/ | wc -l (containers in host)
-docker rm <container id>
-docker info
+# docker info
+# ls /var/lib/docker/containers/ | wc -l (containers in host)
+docker rmi -f with-ping
+docker images
+docker ps -a
+docker rm cont-with-ping
+docker ps -a
 
 ### one process per container ###
-docker run -d omenia/ubuntu-with-ping /bin/bash
+docker build -t with-ping -f Dockerfile_1 .
+docker run --name with-ping-1 -d with-ping
 docker ps
-docker top <container id>
-docker exec <container id> ps
-docker run -d omenia/ubuntu-with-ping ping 8.8.8.8
-docker ps
-docker top <container id>
-docker exec <container id> ps
+# docker top with-ping-1
+docker exec with-ping-1 ps
+docker stop with-ping-1
 
 ### exit container without kill ###
-docker run -it ubuntu /bin/bash
+docker run --name ubuntu-1604 -it ubuntu:16.04 /bin/bash
+exit
+docker run --name ubuntu-1604 -it ubuntu:16.04 /bin/bash
 CTRL p CTRL q
 docker ps
+docker attach ubuntu-1604
 
 ### getting shell in container ###
-docker run -d omenia/ubuntu-with-ping ping 8.8.8.8
-docker exec -it <container id> /bin/bash
+docker run -d --name with-ping-2 with-ping
+docker ps
+docker logs -f with-ping-2
+CTRL + c
+docker attach with-ping-2
+CTRL + c
+docker restart with-ping-2
+docker ps
+docker exec -it with-ping-2 /bin/bash
 ps -ef
 exit
 docker ps
 
-### inspect ###
-docker run -d ubuntu /bin/bash
-docker inspect <container id>
-
-### build from dockerfile ###
-cp /vagrant/Dockerfile .
-docker build -t helloworld:1.0 .
-docker images
-docker history <image id>
-docker run helloworld:1.0
+### inspect container ###
+# docker run -d ubuntu /bin/bash
+docker inspect with-ping-2
+ping <ip_addr>
+CTRL + c
+docker stop with-ping-2
 
 ### docker file and image layers ###
-docker pull ubuntu
-docker images
-docker inspect <image id> (5 layers)
-cp /vagrant/Dockerfile_2 .
-docker build -t="non-optimal-build" -f Dockerfile_2 .
-docker images (image size: 673.6 MB)
-docker inspect <image id> (9 layers)
-cp /vagrant/Dockerfile_3 .
-docker build -t="optimal-build" -f Dockerfile_3 .
-docker images (image size: 673.6 MB)
-docker inspect <image id> (9 layers)
+docker inspect ubuntu:16.04 (5 layers)
+docker build -t non-optimal-build -f Dockerfile_2 .
+docker images (image size: 317 MB)
+docker inspect non-optimal-build (8 layers)
+docker history non-optimal-build
+docker build -t optimal-build -f Dockerfile_3 .
+docker images (image size: 316 MB)
+docker inspect optimal-build (6 layers)
+docker history optimal-build
 
-### entrypoint command ###
+### entrypoint vs cmd command ###
 docker build -t entrypoint_test -f Dockerfile_4 .
 docker images
-docker run entrypoint_test hello !
+docker run entrypoint_test hello world
 docker run -it entrypoint_test /bin/bash (Entrypoint not overriden)
 docker run -it optimal-build /bin/bash (Cmd is overriden)
 
+### ENV, COPY, WORKDIR ###
+docker build -t env-cp-work -f Dockerfile_5 .
+docker images
+docker run -it env-cp-work
+env
+more hello.txt
+exit
+docker ps
+
 ### volumes ###
-docker run -it -v /tmp_vol --name volume_test ubuntu /bin/bash
+# Data volumes can be shared and reused among containers
+# Changes to a data volume are made directly
+# Data volumes persist even if the container itself is deleted
+# a volume will only be deleted if no other container links to it
+docker build -t volume_test_1 -f Dockerfile_6 .
+docker run --name volume-cont-1 -it volume_test_1 /bin/bash
+exit
+docker run --name volume-cont-2 -it --volumes-from volume-cont-1 ubuntu:16.04 /bin/bash
+# kts. että volume löytyy
 CTRL p CTRL q
 docker ps
-docker inspect <container id>
-docker rm -v <container id>
-docker run -it -v /home/vagrant/data:/data_tmp ubuntu /bin/bash
+docker inspect <container name> (volumesFrom, mounts: source, destination)
+docker rm -v <container name>
+docker volume ls
+# host mount
+docker run -it -v /home/vagrant/data:/data_tmp ubuntu:16.04 /bin/bash
+# kts. että volume löytyy
+CTRL p + q
+# edit data/hello.txt
+docker attach <container id>
+# tarkista että data_tmp/hello.txt muuttunut myös
 more /data_tmp/test.txt
+exit
 
-### docker0 bridge ###
+### networking ###
 sudo apt-get install bridge-utils
-brctl show docker0  (see list of connected interfaces)
-cp /vagrant/Dockerfile_5 .
-docker build -t network_test -f Dockerfile_5 .
-docker run -it --name net1 network_test
-docker run -it --name net2 network_test
+# ip a (show host interfaces)
+# brctl show docker0  (see list of connected interfaces)
+docker network create test-net
+docker network ls (selitä eri drivereista)
+docker build -t net_image -f Dockerfile_7 .
+docker run -dit --name cont0 --net test-net net_image
+docker run -it --name cont1 --net test-net net_image
+ping cont0
+(cat /etc/hosts)
 CTRL P Q
+docker ps
+docker network ls (get network id)
+brctl show (bridge name == network id, näkyy että 2 konttia kiinni verkossa)
+docker inspect test-net  (gateway + ip address + 2 konttia jotka kiinni)
+docker stop cont0 cont1
 brctl show
-docker inspect net1  (gateway + ip address)
-docker inspect net2
 
 ### expose ports ###
-docker build -t port-test -f Dockerfile_6 .
-docker run -d -p 5001:80 --name=port-test1 port-test
-(expose vagrant image ip !!!!)
+docker build -t web-server -f Dockerfile_8 .
+docker run -d -p 5001:80 --name web-server-1 web-server
+docker ps
+ifconfig (vm ip)
+(avaa selain)
+docker stop web-server-1
+(refresh selain)
+
+### docker debugging ####
+# create dockerfile one piece at a time
+# erroneus dockerfile -> use intermediate images 
+
+
 
 
 

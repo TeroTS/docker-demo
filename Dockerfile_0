@@ -1,5 +1,3 @@
-# comment
-FROM ubuntu
+FROM ubuntu:16.04
 MAINTAINER omenia@omenia.fi
-RUN apt-get update
 CMD ["echo", "Hello World !"]

@@ -1,0 +1,4 @@
+FROM ubuntu:16.04
+MAINTAINER omenia@omenia.fi
+RUN apt-get update && apt-get install -y iputils-ping
+CMD ["ping", "8.8.8.8"]
