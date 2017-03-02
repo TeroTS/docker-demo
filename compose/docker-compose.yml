@@ -1,10 +1,14 @@
-version: '2'
+version: '3'
 services:
   web:
-    build: .
+    build: ./helloserver
     ports:
       - "5000:5000"
     volumes:
-      - .:/code
+      - ./helloserver:/app
   redis:
     image: "redis:alpine"
+  test:
+    build: ./test
+    volumes:
+      - ./test:/test
