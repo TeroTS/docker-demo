@@ -26,13 +26,16 @@ sudo su
 ls -lrt /var/lib/docker/aufs/diff/<layer>/tmp/hello.txt (image layers)
 exit
 
+# lähdetään tästä ->
 ### First dockerfile ###
 # luodaan yhdessä Dockerfile_1
-docker build -t with-ping -f Dockerfile_1 .   (näytä cache)
+docker build -t with-ping -f Dockerfile_1 .
 docker run --name cont-with-ping with-ping
 CRTL + C
+docker ps
 docker ps -a (see the container name)
 docker run -d --name cont-with-ping-back with-ping
+docker ps
 docker stop cont-with-ping-back
 
 ### start, stop, remove ###
